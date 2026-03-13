@@ -8,3 +8,17 @@ wheels/
 
 # Virtual environments
 .venv
+
+# SQLite
+processed.db
+
+# Output
+output/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
