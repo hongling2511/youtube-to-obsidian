@@ -32,5 +32,21 @@ def process(url, force):
     asyncio.run(pipeline.process(url, force=force))
 
 
+@cli.command()
+@click.argument("url")
+@click.option("--mode", type=click.Choice(["individual", "combined"]), default="individual", help="分析模式")
+@click.option("--last", type=int, default=None, help="只处理最新 N 个视频")
+@click.option("--delay", type=int, default=5, help="视频间隔秒数（仅 individual 模式）")
+@click.option("--force", is_flag=True, help="强制重新处理")
+def playlist(url, mode, last, delay, force):
+    """处理 YouTube 播放列表"""
+    config = load_config()
+    pipeline = Pipeline(config)
+    if mode == "combined":
+        asyncio.run(pipeline.process_playlist_combined(url, last=last, force=force))
+    else:
+        asyncio.run(pipeline.process_playlist_individual(url, last=last, delay=delay, force=force))
+
+
 if __name__ == "__main__":
     cli()
