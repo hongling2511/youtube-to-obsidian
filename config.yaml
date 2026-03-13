@@ -26,4 +26,7 @@ notebooklm:
   analyze_actions: true       # 行动项提取
   analyze_type_specific: true # 按类型深度分析
 
+playlist:
+  default_delay: 5           # individual 模式默认间隔秒数
+
 db_path: "./processed.db"
