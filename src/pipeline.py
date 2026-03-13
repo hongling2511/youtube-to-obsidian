@@ -6,9 +6,11 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from src.analyzer import analyze_video
-from src.extractor import get_playlist_metadata, get_video_metadata
-from src.generator import generate_obsidian_note
+from notebooklm import NotebookLMClient
+
+from src.analyzer import _load_prompt, analyze_video
+from src.extractor import extract_transcript, get_playlist_metadata, get_video_metadata
+from src.generator import generate_obsidian_note, generate_playlist_note
 
 
 class Pipeline:
@@ -101,6 +103,96 @@ class Pipeline:
                 await asyncio.sleep(delay)
 
         print(f"\n📊 播放列表处理完成: ✅ {success} 成功 / ⏭️ {skipped} 跳过 / ❌ {failed} 失败")
+
+    async def process_playlist_combined(
+        self, url: str, last: int | None, force: bool
+    ):
+        """合并分析播放列表：所有视频作为 source 加到一个 Notebook"""
+        playlist = get_playlist_metadata(url, last=last)
+        entries = playlist["entries"]
+        playlist_id = playlist["playlist_id"]
+
+        # 去重检查
+        if not force and self.is_playlist_processed(playlist_id):
+            print(f"⏭️ 播放列表已处理过: {playlist['playlist_title']}（使用 --force 强制重新处理）")
+            return
+
+        # 数量限制
+        if len(entries) > 50:
+            raise ValueError(
+                f"播放列表包含 {len(entries)} 个视频，超过 NotebookLM 50 source 上限。"
+                f"请使用 --last 50 或更小的数字限制处理数量。"
+            )
+
+        print(f"📋 播放列表: {playlist['playlist_title']} ({len(entries)} 个视频，合并分析模式)")
+
+        async with await NotebookLMClient.from_storage() as client:
+            # 1. 创建 Notebook
+            nb_title = f"PL: {playlist['playlist_title'][:80]}"
+            nb = await client.notebooks.create(nb_title)
+            print(f"🧠 Notebook 已创建: {nb_title}")
+
+            # 2. 逐个添加视频为 source
+            added = 0
+            for i, entry in enumerate(entries, 1):
+                print(f"  [{i}/{len(entries)}] 添加源: {entry['title']}")
+                try:
+                    await client.sources.add_url(nb.id, entry["url"])
+                    added += 1
+                except Exception as e:
+                    # 路径 B 兜底
+                    print(f"  ⚠️ URL 添加失败，尝试字幕: {e}")
+                    try:
+                        transcript = extract_transcript(entry["url"])
+                        if transcript:
+                            await client.sources.add_text(nb.id, transcript, title=entry["title"])
+                            added += 1
+                        else:
+                            print(f"  ❌ 跳过: {entry['title']}（无法获取内容）")
+                    except Exception as e2:
+                        print(f"  ❌ 跳过: {entry['title']}（{e2}）")
+
+            if added == 0:
+                await client.notebooks.delete(nb.id)
+                raise ValueError("无法添加任何视频源到 Notebook")
+
+            print(f"✅ 已添加 {added}/{len(entries)} 个视频源")
+
+            # 3. 核心分析
+            print("🧠 正在综合分析...")
+            prompt = _load_prompt("core")
+            result = await client.chat.ask(nb.id, prompt)
+            core = result.answer
+
+            # 4. 清理 Notebook
+            if self.config.get("notebooklm", {}).get("cleanup_notebook", True):
+                try:
+                    await client.notebooks.delete(nb.id)
+                    print("🧠 Notebook 已清理")
+                except Exception:
+                    pass
+
+        # 5. 获取每个视频的详细元数据（用于笔记中的视频列表表格）
+        entries_meta = []
+        for entry in entries:
+            try:
+                meta = get_video_metadata(entry["url"])
+                entries_meta.append(meta)
+            except Exception:
+                entries_meta.append({
+                    "video_id": entry["video_id"],
+                    "title": entry["title"],
+                    "duration_string": "",
+                    "url": entry["url"],
+                })
+
+        # 6. 生成笔记
+        analysis = {"core": core}
+        filepath = generate_playlist_note(playlist, entries_meta, analysis, self.config)
+
+        # 7. 记录成功
+        self._record_playlist(playlist_id, playlist["playlist_title"], url, len(entries), "success")
+        print(f"✅ 完成: {playlist['playlist_title']} → {filepath}")
 
     async def process(self, url: str, force: bool = False):
         """处理单个 YouTube 视频的完整流程"""
