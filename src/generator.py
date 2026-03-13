@@ -213,3 +213,65 @@ def generate_obsidian_note(metadata: dict, analysis: dict, config: dict) -> Path
 
     print(f"✅ 笔记已写入: {filepath}")
     return filepath
+
+
+def generate_playlist_note(
+    playlist_meta: dict, entries_meta: list[dict], analysis: dict, config: dict
+) -> Path:
+    """生成播放列表综合分析的 Obsidian 笔记并写入 Vault"""
+    print("📝 生成播放列表笔记...")
+
+    now = datetime.now()
+    title = playlist_meta.get("playlist_title", "Untitled Playlist")
+    vault_path = Path(config["obsidian"]["vault_path"])
+    inbox = config["obsidian"].get("inbox_folder", "0-收集箱")
+    output_dir = vault_path / inbox
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Frontmatter
+    frontmatter_lines = [
+        "---",
+        "type: youtube-playlist",
+        f"title: {escape_yaml(title)}",
+        f"playlist_id: {playlist_meta.get('playlist_id', '')}",
+        f'channel: "[[{playlist_meta.get("channel") or "Unknown"}]]"',
+        f"url: {playlist_meta.get('url', '')}",
+        f"video_count: {len(entries_meta)}",
+        f"date_watched: {now.strftime('%Y-%m-%d')}",
+        "tags:\n  - playlist",
+        "---",
+    ]
+    frontmatter = "\n".join(frontmatter_lines)
+
+    # Video table
+    table_lines = [
+        "## 视频列表",
+        "| # | 标题 | 时长 |",
+        "|---|------|------|",
+    ]
+    for i, entry in enumerate(entries_meta, 1):
+        entry_title = entry.get("title", "Unknown")
+        duration = entry.get("duration_string", "")
+        table_lines.append(f"| {i} | {entry_title} | {duration} |")
+
+    # Body
+    core_answer = analysis.get("core", "")
+    sections = [
+        f"# {title}",
+        "",
+        "\n".join(table_lines),
+        "",
+        core_answer,
+        "",
+        "---",
+        f"*自动生成于 {now.strftime('%Y-%m-%d %H:%M')} | [原始播放列表]({playlist_meta.get('url', '')})*",
+    ]
+
+    content = frontmatter + "\n\n" + "\n".join(sections) + "\n"
+
+    filename = sanitize_filename(title) + ".md"
+    filepath = output_dir / filename
+    filepath.write_text(content, encoding="utf-8")
+
+    print(f"✅ 播放列表笔记已写入: {filepath}")
+    return filepath
