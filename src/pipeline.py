@@ -29,6 +29,16 @@ class Pipeline:
                 status TEXT
             )
         """)
+        self.db.execute("""
+            CREATE TABLE IF NOT EXISTS playlists (
+                playlist_id TEXT PRIMARY KEY,
+                title TEXT,
+                url TEXT,
+                video_count INTEGER,
+                processed_at TEXT,
+                status TEXT
+            )
+        """)
         self.db.commit()
 
     def is_processed(self, video_id: str) -> bool:
@@ -43,6 +53,22 @@ class Pipeline:
         self.db.execute(
             "INSERT OR REPLACE INTO processed (video_id, title, url, processed_at, status) VALUES (?, ?, ?, ?, ?)",
             (video_id, title, url, datetime.now().isoformat(), status),
+        )
+        self.db.commit()
+
+    def is_playlist_processed(self, playlist_id: str) -> bool:
+        """检查播放列表是否已处理"""
+        row = self.db.execute(
+            "SELECT 1 FROM playlists WHERE playlist_id = ? AND status = 'success'",
+            (playlist_id,),
+        ).fetchone()
+        return row is not None
+
+    def _record_playlist(self, playlist_id: str, title: str, url: str, video_count: int, status: str):
+        """记录播放列表处理结果"""
+        self.db.execute(
+            "INSERT OR REPLACE INTO playlists (playlist_id, title, url, video_count, processed_at, status) VALUES (?, ?, ?, ?, ?, ?)",
+            (playlist_id, title, url, video_count, datetime.now().isoformat(), status),
         )
         self.db.commit()
 
