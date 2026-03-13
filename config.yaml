@@ -1,0 +1,29 @@
+obsidian:
+  vault_path: "/Users/hongling/obsidian-second-brain"
+  inbox_folder: "0-收集箱"
+
+youtube:
+  preferred_languages: ["zh", "en"]
+
+notebooklm:
+  cleanup_notebook: true
+
+  # 生成功能开关
+  generate_audio: false
+  generate_mind_map: true
+  generate_quiz: false
+  generate_study_guide: true
+
+  # 生成参数
+  quiz_difficulty: "medium"       # easy / medium / hard
+  audio_language: "en"
+
+  # 视频时长阈值（秒），低于此值跳过某些生成
+  quiz_min_duration: 600
+
+  # 多 prompt 分析开关
+  analyze_concepts: true      # 概念提取
+  analyze_actions: true       # 行动项提取
+  analyze_type_specific: true # 按类型深度分析
+
+db_path: "./processed.db"
