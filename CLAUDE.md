@@ -146,22 +146,33 @@ uv run python -c "import notebooklm; help(notebooklm)"
 #### Step 6：prompts/core.txt
 
 ```
-请对这个视频内容做结构化分析，用以下格式回答：
+请对这个视频内容做结构化分析，用中文回答，保留英文术语原文。
+
+要求：
+- 严格按固定标题输出，不要添加额外小节
+- 信息不足时明确写「未明确提及」，不要猜测
+- 仅对关键概念使用 [[双向链接]]
 
 ## 一句话总结
 （不超过 30 个字）
 
 ## 内容类型
-（从以下选择一个：tech_tutorial / podcast / knowledge / business）
+（只输出：tech_tutorial / podcast / knowledge / business）
+
+## 目标受众与前置知识
+（说明适合谁看，以及需要的背景知识）
 
 ## 核心观点
-（列出 3-5 个最重要的观点，每个观点一句话概括 + 一句话解释）
+（列出 3-5 个最重要的观点，每个观点包含概括、重要性、依据）
 
 ## 详细笔记
-（按视频的逻辑结构或章节，整理详细内容要点）
+（按视频逻辑整理结构化笔记；不强制时间戳）
 
 ## 金句亮点
-（提取 2-3 句最有价值的原文，标注出现的大致位置）
+（提取 2-3 句最有价值的原意表达；必要时可标注「意译」）
+
+## 适用场景与行动建议
+（说明适用场景和 1-3 个可执行行动）
 
 ## 价值评分
 （1-5 分，从信息密度、实用性、新颖性三个维度打分）
@@ -239,7 +250,7 @@ cat ~/obsidian/0-收集箱/<generated-note>.md
 
 ### Phase 2：丰富分析维度（Phase 1 验证通过后）
 
-- 多 prompt 分析（concepts.txt → `[[双向链接]]`、actions.txt → 行动项）
+- 多 prompt 分析（concepts.txt → 概念卡片与关系、actions.txt → 可执行行动项）
 - `parse_concepts_to_links()` 解析概念为 Obsidian 双向链接
 - Mind map 生成 + JSON 导出到 `_附件/mindmaps/`
 - Quiz 生成 + Markdown 导出到 `_附件/quizzes/`

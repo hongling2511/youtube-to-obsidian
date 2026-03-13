@@ -147,8 +147,8 @@ async def _generate_artifacts(client, nb_id: str, metadata: dict, config: dict) 
         try:
             print("🧠 生成测验...")
             status = await client.artifacts.generate_quiz(nb_id)
-            status = await client.artifacts.wait_for_completion(nb_id, status.artifact_id)
-            artifacts["quiz_id"] = status.artifact_id
+            status = await client.artifacts.wait_for_completion(nb_id, status.task_id)
+            artifacts["quiz_id"] = status.task_id
             print("✅ 测验已生成")
         except Exception as e:
             print(f"⚠️ 测验生成失败: {e}")
@@ -158,8 +158,8 @@ async def _generate_artifacts(client, nb_id: str, metadata: dict, config: dict) 
         try:
             print("🧠 生成学习指南...")
             status = await client.artifacts.generate_study_guide(nb_id)
-            status = await client.artifacts.wait_for_completion(nb_id, status.artifact_id)
-            artifacts["study_guide_id"] = status.artifact_id
+            status = await client.artifacts.wait_for_completion(nb_id, status.task_id)
+            artifacts["study_guide_id"] = status.task_id
             print("✅ 学习指南已生成")
         except Exception as e:
             print(f"⚠️ 学习指南生成失败: {e}")
@@ -171,9 +171,9 @@ async def _generate_artifacts(client, nb_id: str, metadata: dict, config: dict) 
             print("🧠 生成音频概述...")
             status = await client.artifacts.generate_audio(nb_id, language=lang)
             status = await client.artifacts.wait_for_completion(
-                nb_id, status.artifact_id, timeout=600.0
+                nb_id, status.task_id, timeout=600.0
             )
-            artifacts["audio_id"] = status.artifact_id
+            artifacts["audio_id"] = status.task_id
             print("✅ 音频概述已生成")
         except Exception as e:
             print(f"⚠️ 音频概述生成失败: {e}")

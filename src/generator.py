@@ -92,9 +92,10 @@ def _parse_concepts(concepts_answer: str | None) -> list[str]:
     seen = set()
     result = []
     for m in matches:
-        if m not in seen:
-            seen.add(m)
-            result.append(m)
+        normalized = re.sub(r"\s+", " ", m).strip()
+        if normalized and normalized not in seen:
+            seen.add(normalized)
+            result.append(normalized)
     return result
 
 
@@ -102,7 +103,11 @@ def _has_actions(actions_answer: str | None) -> bool:
     """检测行动项分析中是否包含 checkbox"""
     if not actions_answer:
         return False
-    return "- [ ]" in actions_answer
+    matches = re.findall(r"^\s*-\s\[\s\]\s*(.+)$", actions_answer, flags=re.MULTILINE)
+    for item in matches:
+        if item.strip() != "未明确提及":
+            return True
+    return False
 
 
 def generate_obsidian_note(metadata: dict, analysis: dict, config: dict) -> Path:
@@ -262,10 +267,25 @@ def generate_playlist_note(
         "\n".join(table_lines),
         "",
         core_answer,
+    ]
+
+    type_specific = analysis.get("type_specific")
+    if type_specific:
+        sections.extend(["", type_specific])
+
+    concepts_text = analysis.get("concepts")
+    if concepts_text:
+        sections.extend(["", concepts_text])
+
+    actions_text = analysis.get("actions")
+    if actions_text:
+        sections.extend(["", actions_text])
+
+    sections.extend([
         "",
         "---",
         f"*自动生成于 {now.strftime('%Y-%m-%d %H:%M')} | [原始播放列表]({playlist_meta.get('url', '')})*",
-    ]
+    ])
 
     content = frontmatter + "\n\n" + "\n".join(sections) + "\n"
 

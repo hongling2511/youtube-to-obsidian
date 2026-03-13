@@ -63,6 +63,21 @@ class TestGeneratePlaylistNote:
         assert "Python基础教程" in content
         assert "观点1" in content
 
+    def test_body_includes_multi_prompt_sections(self, tmp_vault, base_config, playlist_meta, entries_meta):
+        analysis = {
+            "core": "## 一句话总结\n综合分析",
+            "type_specific": "## 技术栈与环境要求\n- [[Claude Code]]",
+            "concepts": "## 关键概念\n### [[Agent]]",
+            "actions": "## 行动项\n- [ ] 试用 [[Plan Mode]]",
+        }
+
+        result = generate_playlist_note(playlist_meta, entries_meta, analysis, base_config)
+        content = result.read_text(encoding="utf-8")
+
+        assert "## 技术栈与环境要求" in content
+        assert "## 关键概念" in content
+        assert "## 行动项" in content
+
     def test_filename_from_playlist_title(self, tmp_vault, base_config, playlist_meta, entries_meta, analysis):
         result = generate_playlist_note(playlist_meta, entries_meta, analysis, base_config)
         assert "Python 教程系列" in result.stem

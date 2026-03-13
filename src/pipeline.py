@@ -8,7 +8,7 @@ from pathlib import Path
 
 from notebooklm import NotebookLMClient
 
-from src.analyzer import _load_prompt, analyze_video
+from src.analyzer import _load_prompt, _parse_content_type, analyze_video
 from src.extractor import extract_transcript, get_playlist_metadata, get_video_metadata
 from src.generator import generate_obsidian_note, generate_playlist_note
 
@@ -109,6 +109,8 @@ class Pipeline:
     ):
         """合并分析播放列表：所有视频作为 source 加到一个 Notebook"""
         playlist = get_playlist_metadata(url, last=last)
+        if not playlist.get("url"):
+            playlist = {**playlist, "url": url}
         entries = playlist["entries"]
         playlist_id = playlist["playlist_id"]
 
@@ -160,9 +162,12 @@ class Pipeline:
 
             # 3. 核心分析
             print("🧠 正在综合分析...")
-            prompt = _load_prompt("core")
+            prompt = _load_prompt("core_playlist")
             result = await client.chat.ask(nb.id, prompt)
             core = result.answer
+
+            analysis = {"core": core}
+            analysis.update(await _chat_multi_prompts_for_playlist(client, nb.id, core, self.config))
 
             # 4. 清理 Notebook
             if self.config.get("notebooklm", {}).get("cleanup_notebook", True):
@@ -187,7 +192,6 @@ class Pipeline:
                 })
 
         # 6. 生成笔记
-        analysis = {"core": core}
         filepath = generate_playlist_note(playlist, entries_meta, analysis, self.config)
 
         # 7. 记录成功
@@ -245,3 +249,44 @@ def extract_video_id(url: str) -> str | None:
         if match:
             return match.group(1)
     return None
+
+
+async def _chat_multi_prompts_for_playlist(client, nb_id: str, core_answer: str, config: dict) -> dict:
+    """为播放列表综合分析追加类型专项、概念和行动项分析。"""
+    nlm_config = config.get("notebooklm", {})
+    results = {}
+
+    if nlm_config.get("analyze_type_specific", True):
+        content_type = _parse_content_type(core_answer)
+        if content_type:
+            type_prompt_name = f"type_{content_type}"
+            try:
+                print(f"🧠 发送播放列表类型分析 prompt: {content_type}...")
+                result = await client.chat.ask(nb_id, _load_prompt(type_prompt_name))
+                if result.answer and len(result.answer) > 50:
+                    results["type_specific"] = result.answer
+                    print(f"✅ 播放列表类型分析完成: {content_type}")
+            except Exception as e:
+                print(f"⚠️ 播放列表类型分析失败: {e}")
+
+    if nlm_config.get("analyze_concepts", True):
+        try:
+            print("🧠 发送播放列表概念提取 prompt...")
+            result = await client.chat.ask(nb_id, _load_prompt("concepts"))
+            if result.answer and len(result.answer) > 50:
+                results["concepts"] = result.answer
+                print("✅ 播放列表概念提取完成")
+        except Exception as e:
+            print(f"⚠️ 播放列表概念提取失败: {e}")
+
+    if nlm_config.get("analyze_actions", True):
+        try:
+            print("🧠 发送播放列表行动项提取 prompt...")
+            result = await client.chat.ask(nb_id, _load_prompt("actions"))
+            if result.answer and len(result.answer) > 50:
+                results["actions"] = result.answer
+                print("✅ 播放列表行动项提取完成")
+        except Exception as e:
+            print(f"⚠️ 播放列表行动项提取失败: {e}")
+
+    return results
