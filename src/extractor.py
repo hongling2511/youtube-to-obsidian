@@ -126,3 +126,72 @@ def _parse_vtt_to_text(vtt_content: str) -> str:
             lines.append(clean)
 
     return "\n".join(lines)
+
+
+def get_playlist_metadata(url: str, last: int | None = None) -> dict:
+    """调用 yt-dlp 提取播放列表元数据（不下载视频）
+
+    Args:
+        url: YouTube 播放列表 URL
+        last: 只取最后 N 个视频，None 表示全部
+
+    Returns:
+        dict with keys: playlist_id, playlist_title, channel, entries
+        每个 entry 包含: video_id, title, url, duration
+    """
+    print("📥 提取播放列表元数据...")
+    try:
+        result = subprocess.run(
+            ["yt-dlp", "--dump-json", "--flat-playlist", url],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"yt-dlp 错误: {result.stderr.strip()}")
+
+        # yt-dlp --flat-playlist outputs one JSON object per line
+        lines = [line for line in result.stdout.strip().splitlines() if line.strip()]
+        if not lines:
+            raise RuntimeError("播放列表为空或无法解析")
+
+        entries = []
+        playlist_id = ""
+        playlist_title = ""
+        channel = ""
+
+        for line in lines:
+            data = json.loads(line)
+            if not playlist_id:
+                playlist_id = data.get("playlist_id", "")
+                playlist_title = data.get("playlist_title", "")
+                channel = data.get("playlist_channel", data.get("channel", ""))
+
+            video_id = data.get("id", "")
+            video_url = data.get("url", "")
+            # flat-playlist 的 url 可能是相对路径，需要补全
+            if video_url and not video_url.startswith("http"):
+                video_url = f"https://www.youtube.com/watch?v={video_id}"
+
+            entries.append({
+                "video_id": video_id,
+                "title": data.get("title", ""),
+                "url": video_url,
+                "duration": data.get("duration", 0),
+            })
+
+        # --last 切片
+        if last is not None and last > 0:
+            entries = entries[-last:]
+
+        print(f"✅ 播放列表: {playlist_title} ({len(entries)} 个视频)")
+        return {
+            "playlist_id": playlist_id,
+            "playlist_title": playlist_title,
+            "channel": channel,
+            "entries": entries,
+        }
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("yt-dlp 超时（120秒）")
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"yt-dlp 输出解析失败: {e}")
