@@ -1,12 +1,13 @@
 """流程编排 + SQLite 去重"""
 
+import asyncio
 import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 from src.analyzer import analyze_video
-from src.extractor import get_video_metadata
+from src.extractor import get_playlist_metadata, get_video_metadata
 from src.generator import generate_obsidian_note
 
 
@@ -71,6 +72,35 @@ class Pipeline:
             (playlist_id, title, url, video_count, datetime.now().isoformat(), status),
         )
         self.db.commit()
+
+    async def process_playlist_individual(
+        self, url: str, last: int | None, delay: int, force: bool
+    ):
+        """逐个处理播放列表中的视频"""
+        playlist = get_playlist_metadata(url, last=last)
+        entries = playlist["entries"]
+        total = len(entries)
+
+        print(f"📋 播放列表: {playlist['playlist_title']} ({total} 个视频，逐个分析模式)")
+
+        success = 0
+        skipped = 0
+        failed = 0
+
+        for i, entry in enumerate(entries, 1):
+            print(f"\n[{i}/{total}] 处理中: {entry['title']}")
+            try:
+                await self.process(entry["url"], force=force)
+                success += 1
+            except Exception as e:
+                print(f"❌ [{i}/{total}] 失败: {e}")
+                failed += 1
+
+            # 非最后一个视频时等待
+            if i < total and delay > 0:
+                await asyncio.sleep(delay)
+
+        print(f"\n📊 播放列表处理完成: ✅ {success} 成功 / ⏭️ {skipped} 跳过 / ❌ {failed} 失败")
 
     async def process(self, url: str, force: bool = False):
         """处理单个 YouTube 视频的完整流程"""
