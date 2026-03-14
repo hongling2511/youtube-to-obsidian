@@ -363,4 +363,4 @@ pytest -q
 
 ## 许可证
 
-未指定。
+本项目采用 [MIT License](./LICENSE) 开源协议。

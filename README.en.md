@@ -363,4 +363,4 @@ pytest -q
 
 ## License
 
-Not specified.
+This project is released under the [MIT License](./LICENSE).

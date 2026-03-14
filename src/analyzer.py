@@ -57,7 +57,7 @@ async def _add_source(client, nb_id: str, url: str, metadata: dict, config: dict
     if not transcript:
         return False
 
-    await client.sources.add_text(nb_id, transcript, title=metadata["title"])
+    await client.sources.add_text(nb_id, metadata["title"], transcript)
     print(f"🧠 路径 B：字幕文本已上传（{len(transcript)} 字符）")
     return True
 
@@ -283,7 +283,7 @@ async def analyze_video(url: str, metadata: dict, config: dict) -> dict:
             except Exception:
                 pass
             nb = await client.notebooks.create(title)
-            await client.sources.add_text(nb.id, transcript, title=metadata["title"])
+            await client.sources.add_text(nb.id, metadata["title"], transcript)
             print(f"🧠 路径 B 重试：字幕文本已上传（{len(transcript)} 字符）")
 
             core = await _chat_analysis(client, nb.id)

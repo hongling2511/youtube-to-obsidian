@@ -147,7 +147,7 @@ class Pipeline:
                     try:
                         transcript = extract_transcript(entry["url"])
                         if transcript:
-                            await client.sources.add_text(nb.id, transcript, title=entry["title"])
+                            await client.sources.add_text(nb.id, entry["title"], transcript)
                             added += 1
                         else:
                             print(f"  ❌ 跳过: {entry['title']}（无法获取内容）")
