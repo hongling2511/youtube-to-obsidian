@@ -1,0 +1,17 @@
+round	version	weighted_score	faithfulness	completeness	structure	density	obsidian_fitness	actionability	status	mutation_strategy	description
+0	v0_baseline	6.70	8	6	7	7	6	5	baseline	-	初始 baseline prompt
+1	v1	7.30	8	7	8	7	7	6	keep	措辞微调	修复核心观点格式占位符问题；要求详细笔记用具体小标题；增加双向链接使用指引
+2	v2	7.55	9	7	8	7	7	6	keep	增加约束	增加定量信息溯源要求；区分作者明确说的与推断；要求数据来源标注
+3	v3	8.05	9	8	8	8	8	6	keep	结构调整	新增概念关系图section；详细笔记改用###分章节；提升Obsidian图谱连接性
+4	v4	8.20	9	8	8	9	8	6	keep	删减冗余	prompt 精简34%（1291→853字节）；合并补充要求为一句话；输出密度提升
+5	v5	8.05	9	8	8	8	8	6	discard	示例注入	添加概念关系和金句的few-shot示例；增加金句语境字段；prompt变长但输出质量未提升
+6	v6	8.50	9	9	8	8	9	7	keep	措辞微调	要求覆盖所有实体；行动建议需说明与哪个观点相关；Obsidian链接和可操作性显著提升
+7	v7	8.50	9	9	8	8	9	7	discard	增加约束	要求避免泛化描述和每章节至少一个具体例子；同分但prompt更长，按简洁性规则discard
+8	v8	8.80	9	9	9	9	9	7	keep	结构调整	引入YAML frontmatter（tags+评分）；合并内容类型到tags；精简行动建议格式；prompt最短840字节
+9	v9	8.50	8	9	9	8	9	8	discard	措辞微调	行动建议改为做什么/为什么/下一步三段式；Actionability提升但引入外部工具名降低Faithfulness
+10	v10	8.80	9	9	9	9	9	7	keep	删减冗余	prompt精简至667字节（v8为840）；同分但更短胜出；金句改为单行格式；训练数据压缩为一行
+11	v11	8.90	9	9	9	9	9	8	keep	措辞微调	行动建议增加验证标准+知识/教程分类指引；Actionability 7→8；prompt 813字节
+12	v12	9.15	10	9	9	9	9	8	keep	增加约束	增加来源标注要求（讲者原话/屏幕展示/推断）；区分明确说vs推断；Faithfulness 9→10；prompt 884字节
+13	v13	9.35	10	10	9	9	9	8	keep	增加约束	实体遗漏视为不合格；要求覆盖每个话题转换；Completeness 9→10；prompt 948字节
+14	v14	9.45	10	10	9	9	9	9	keep	措辞微调	行动建议改为动词开头+复现/验证/应用框架三类；不引入外部资源；Actionability 8→9；prompt 968字节
+15	v15	9.60	10	10	9	9	10	9	keep	措辞微调	双向链接改为首次出现加链接+泛称不加链接；Obsidian Fitness 9→10；prompt 1007字节

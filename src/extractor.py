@@ -7,12 +7,21 @@ import tempfile
 from pathlib import Path
 
 
+def _cookies_args() -> list[str]:
+    """返回 cookies 和 EJS 参数"""
+    args = ["--remote-components", "ejs:github"]
+    cookies_path = Path(__file__).parent.parent / "cookies.txt"
+    if cookies_path.exists():
+        args.extend(["--cookies", str(cookies_path)])
+    return args
+
+
 def get_video_metadata(url: str) -> dict:
     """调用 yt-dlp 提取视频元数据（不下载视频）"""
     print("📥 提取视频元数据...")
     try:
         result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", url],
+            ["yt-dlp", "--dump-json", "--no-download", "--no-playlist", *_cookies_args(), url],
             capture_output=True,
             text=True,
             timeout=60,
@@ -66,6 +75,7 @@ def extract_transcript(url: str, langs: list[str] | None = None) -> str | None:
                     "--sub-lang", lang_str,
                     "--sub-format", "vtt",
                     "--skip-download",
+                    *_cookies_args(),
                     "-o", f"{tmpdir}/%(id)s.%(ext)s",
                     url,
                 ],
@@ -142,7 +152,7 @@ def get_playlist_metadata(url: str, last: int | None = None) -> dict:
     print("📥 提取播放列表元数据...")
     try:
         result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--flat-playlist", url],
+            ["yt-dlp", "--dump-json", "--flat-playlist", *_cookies_args(), url],
             capture_output=True,
             text=True,
             timeout=120,

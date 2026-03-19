@@ -1,0 +1,72 @@
+[
+  {
+    "id": "sal78ACtGTc",
+    "title": "What's next for AI agentic workflows ft. Andrew Ng of AI Fund",
+    "author": "Sequoia Capital",
+    "type": "strategy",
+    "tags": ["AI Agent", "agentic workflow", "Andrew Ng", "趋势"]
+  },
+  {
+    "id": "q1XFm21I-VQ",
+    "title": "Andrew Ng On AI Agentic Workflows And Their Potential For Driving AI Progress",
+    "author": "Snowflake Developers",
+    "type": "deep_talk",
+    "tags": ["AI Agent", "agentic workflow", "Andrew Ng", "深度演讲"]
+  },
+  {
+    "id": "KrRD7r7y7NY",
+    "title": "Andrew Ng Explores The Rise Of AI Agents And Agentic Reasoning | BUILD 2024 Keynote",
+    "author": "Snowflake Inc.",
+    "type": "keynote",
+    "tags": ["AI Agent", "agentic reasoning", "Andrew Ng", "BUILD 2024"]
+  },
+  {
+    "id": "zjkBMFhNj_g",
+    "title": "[1hr Talk] Intro to Large Language Models",
+    "author": "Andrej Karpathy",
+    "type": "knowledge",
+    "tags": ["LLM", "基础知识", "Karpathy"]
+  },
+  {
+    "id": "qU3fmidNbJE",
+    "title": "AI Agents Fundamentals In 21 Minutes",
+    "author": "Tina Huang",
+    "type": "intro",
+    "tags": ["AI Agent", "入门", "科普"]
+  },
+  {
+    "id": "VC2uDeJg98s",
+    "title": "Mastering LLM Agent Frameworks: LangGraph, AG2, CrewAI, Semantic Kernel for AI Development",
+    "author": "Shane | LLM Implementation",
+    "type": "comparison",
+    "tags": ["LangGraph", "CrewAI", "AG2", "框架对比"]
+  },
+  {
+    "id": "5eYg1OcHm5k",
+    "title": "LangGraph + CrewAI: Crash Course for Beginners [Source Code Included]",
+    "author": "aiwithbrandon",
+    "type": "tech_tutorial",
+    "tags": ["LangGraph", "CrewAI", "实战教程"]
+  },
+  {
+    "id": "MlXTzhZkKGY",
+    "title": "Build Claude Agents with Anthropic's NEW MCP",
+    "author": "Tyler AI",
+    "type": "tech_tutorial",
+    "tags": ["Claude", "MCP", "Anthropic", "工具教程"]
+  },
+  {
+    "id": "TqC1qOfiVcQ",
+    "title": "Claude Agent SDK [Full Workshop] — Thariq Shihipar, Anthropic",
+    "author": "AI Engineer",
+    "type": "workshop",
+    "tags": ["Claude", "Agent SDK", "Anthropic", "Workshop"]
+  },
+  {
+    "id": "PVs7ZnWXTcc",
+    "title": "Master THESE 4 Stages of AI Agents in 2025! (Beginner to PRO)",
+    "author": "AI Foundations",
+    "type": "roadmap",
+    "tags": ["AI Agent", "学习路线", "进阶"]
+  }
+]
